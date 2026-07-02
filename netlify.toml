@@ -1,0 +1,20 @@
+[build]
+  publish = "."
+
+# Clean URLs: /term2calendar -> /term2calendar/index.html
+[[redirects]]
+  from = "/term2calendar"
+  to = "/term2calendar/"
+  status = 301
+
+[[redirects]]
+  from = "/term3calendar"
+  to = "/term3calendar/"
+  status = 301
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Content-Type-Options = "nosniff"
+    X-Frame-Options = "DENY"
+    Referrer-Policy = "strict-origin-when-cross-origin"
