@@ -1931,7 +1931,7 @@
       finalEvents = [];
       events.forEach(ev => {
         if (ev.kind === 'mine') {
-          finalEvents.push({ ...ev, allDay: true });
+          finalEvents.push(ev);
         } else if (ev.kind === 'exam') {
           // Exams keep their time tag even on weekends — never treat as all-day
           if (!seen.has(ev.label)) { seen.add(ev.label); finalEvents.push(ev); }
