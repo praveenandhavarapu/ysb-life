@@ -378,6 +378,25 @@
 </footer>
 
 <script>
+  // ---------- ANALYTICS ----------
+  // Safe wrapper around Cloudflare Web Analytics custom events.
+  // Silently no-ops if the beacon hasn't loaded (e.g., ad blockers, local file://).
+  function trackEvent(name, props) {
+    try {
+      const b = window.__cfBeacon || (window.cloudflare && window.cloudflare.beacon);
+      if (b && typeof b.trackEvent === 'function') { b.trackEvent(name, props || {}); return; }
+      window._cfEventQueue = window._cfEventQueue || [];
+      window._cfEventQueue.push({ name, props: props || {} });
+    } catch (e) { /* never block UX on analytics */ }
+  }
+  setInterval(() => {
+    const b = window.__cfBeacon || (window.cloudflare && window.cloudflare.beacon);
+    if (b && typeof b.trackEvent === 'function' && window._cfEventQueue && window._cfEventQueue.length) {
+      window._cfEventQueue.forEach(e => { try { b.trackEvent(e.name, e.props); } catch(_){} });
+      window._cfEventQueue = [];
+    }
+  }, 2000);
+
   /* Registry of all pages. Add new entries here as you ship new tools. */
   const PAGES = [
     {
@@ -440,6 +459,7 @@
           <div class="empty-title">No tool for "${esc(query.trim())}" — yet.</div>
           <div class="empty-sub">This one isn't live. It'll be going live in some time. Meanwhile try <code>term 2 calendar</code> or <code>term 3 calendar</code>.</div>
         </div>`;
+      trackEvent('search_no_results', { query: query.trim() });
       return;
     }
 
@@ -465,6 +485,11 @@
           </span>
           <span class="res-arr">↵</span>`;
       }
+      if (!soon) {
+        el.addEventListener('click', () => {
+          trackEvent('search_result_clicked', { path: p.path, title: p.title, query: query.trim() });
+        });
+      }
       results.appendChild(el);
     });
   }
@@ -473,6 +498,11 @@
     const nq = norm(q.value);
     if (!nq) return;
     const ranked = PAGES.map(p => ({ p, s: score(p, q.value) })).filter(x => x.s > 0).sort((a, b) => b.s - a.s);
+    trackEvent('search_submitted', {
+      query: q.value.trim(),
+      matched: ranked.length > 0,
+      top_result: ranked.length ? ranked[0].p.path : null
+    });
     if (ranked.length && ranked[0].p.status !== 'soon') {
       window.location.href = ranked[0].p.path;
     } else {
@@ -485,11 +515,16 @@
   go.addEventListener('click', submit);
   document.querySelectorAll('.chip').forEach(chip => {
     chip.addEventListener('click', () => {
+      trackEvent('quick_chip_clicked', { query: chip.dataset.fill });
       q.value = chip.dataset.fill;
       q.focus();
       render(q.value);
     });
   });
 </script>
+
+<!-- Cloudflare Web Analytics -->
+<script defer src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "50701dc5a6664180ad80f5bc95fcdcbd"}'></script>
+<!-- End Cloudflare Web Analytics -->
 </body>
 </html>
