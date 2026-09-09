@@ -1,0 +1,24 @@
+[build]
+  publish = "."
+
+[[redirects]]
+  from = "/term2calendar"
+  to = "/term2calendar/"
+  status = 301
+
+[[redirects]]
+  from = "/term3calendar"
+  to = "/term3calendar/"
+  status = 301
+
+[[redirects]]
+  from = "/term4calendar"
+  to = "/term4calendar/"
+  status = 301
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Content-Type-Options = "nosniff"
+    X-Frame-Options = "DENY"
+    Referrer-Policy = "strict-origin-when-cross-origin"
